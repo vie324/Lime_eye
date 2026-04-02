@@ -287,7 +287,7 @@ const CATEGORIES = {
   },
   ssin: {
     "基本情報": ["timestamp", "name", "address", "phone", "birthday", "occupation"],
-    "来店経緯": ["how_found", "reason_chose", "reason_from_other", "dissatisfaction_reason", "visit_frequency", "interested_menu", "treatment_planned"],
+    "来店経緯": ["how_found", "reason_chose", "reason_from_other", "dissatisfaction_reason", "visit_frequency", "interested_menu", "column_51", "treatment_planned"],
     "アイブロウ": ["last_brow_care_timing", "brow_self_care", "facial_cosmetic_surgery", "allergy_brow", "skin_concern_brow", "brow_color_bleach", "brow_design_image", "desired_impression_brow", "brow_makeup_items", "sns_photo_ok_brow", "consent_brow"],
     "ラッシュリフト": ["glue_allergy_history", "eye_surgery_history", "allergy_lash", "skin_concern_lash", "eye_appearance_pref", "lash_design_image", "homecare_product_lash", "sns_photo_ok_lash", "consent_lash"],
     "併用メニュー": ["eye_surgery_history_combo", "allergy_combo", "skin_concern_combo", "brow_self_care_combo", "last_brow_care_timing_combo", "brow_color_bleach_combo", "brow_design_image_combo", "desired_impression_combo", "brow_makeup_items_combo", "glue_allergy_history_combo", "contact_lens", "eye_appearance_pref_combo", "lash_design_image_combo", "homecare_product_combo", "sns_photo_ok_combo", "consent_combo"],
@@ -558,17 +558,16 @@ function App() {
       </main>
 
       {/* ━━━ Detail Modal ━━━ */}
-      {selectedDetail && (
-        <DetailModal detail={selectedDetail} salon={salon} onClose={() => setSelectedDetail(null)} />
-      )}
-      {detailLoading && (
+      {detailLoading ? (
         <div className="modal-overlay">
           <div className="loading" style={{ color: "#fff" }}>
             <div className="spinner" style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "#fff" }} />
             詳細を読み込み中...
           </div>
         </div>
-      )}
+      ) : selectedDetail ? (
+        <DetailModal detail={selectedDetail} salon={salon} onClose={() => setSelectedDetail(null)} />
+      ) : null}
     </div>
   );
 }
