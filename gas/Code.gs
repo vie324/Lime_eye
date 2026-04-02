@@ -13,11 +13,11 @@
 // ━━━ 設定 ━━━
 const SHEET_CONFIG = {
   lumiss: {
-    spreadsheetId: 'ここにLUMISSのスプレッドシートIDを貼る',
+    spreadsheetId: '1wMHMc7KeARs4sMNnGrjfX8rgSw_h2gVoXTFdaDZJqAM',
     sheetName: 'LUMISS',
   },
   ssin: {
-    spreadsheetId: 'ここにSSIN STUDIOのスプレッドシートIDを貼る',
+    spreadsheetId: '1wMHMc7KeARs4sMNnGrjfX8rgSw_h2gVoXTFdaDZJqAM',
     sheetName: 'SSIN',
   }
 };
