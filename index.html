@@ -1,11 +1,221 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Counseling Viewer — LUMISS / SSIN STUDIO</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CSS — Counseling Viewer
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:root {
+  --bg: #FAF8F5;
+  --bg-card: #FFFFFF;
+  --bg-hover: #F5F0EB;
+  --text: #2C2825;
+  --text-secondary: #8A7E76;
+  --text-muted: #B5ADA5;
+  --accent-lumiss: #9B7E5E;
+  --accent-ssin: #6B7B6E;
+  --accent-active: var(--accent-lumiss);
+  --border: #E8E2DC;
+  --border-light: #F0EBE5;
+  --alert: #C4564A;
+  --alert-bg: #FDF2F1;
+  --success: #5A8A6B;
+  --success-bg: #F0F7F2;
+  --radius: 10px;
+  --shadow-sm: 0 1px 3px rgba(44,40,37,0.06);
+  --shadow-md: 0 4px 16px rgba(44,40,37,0.08);
+  --shadow-lg: 0 8px 32px rgba(44,40,37,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+.app { min-height: 100vh; display: flex; flex-direction: column; }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 設定: GAS WebアプリのURLをここに貼る
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/* ━━━ Header ━━━ */
+.header {
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.92);
+}
+.header-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; height: 64px;
+}
+.logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; letter-spacing: 3px; }
+.logo span { font-weight: 600; color: var(--accent-active); }
+
+/* ━━━ Salon Tabs ━━━ */
+.salon-tabs { display: flex; gap: 2px; background: var(--border-light); border-radius: 8px; padding: 3px; }
+.salon-tab {
+  padding: 8px 20px; border: none; background: transparent;
+  font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 13px; font-weight: 500;
+  color: var(--text-secondary); cursor: pointer; border-radius: 6px;
+  transition: var(--transition); letter-spacing: 1px;
+}
+.salon-tab:hover { color: var(--text); background: rgba(255,255,255,0.5); }
+.salon-tab.active { background: var(--bg-card); color: var(--text); box-shadow: var(--shadow-sm); }
+
+/* ━━━ Main ━━━ */
+.main { flex: 1; max-width: 1200px; margin: 0 auto; width: 100%; padding: 24px; }
+
+/* ━━━ Toolbar ━━━ */
+.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+.search-box {
+  display: flex; align-items: center;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0 14px; width: 320px; transition: var(--transition);
+}
+.search-box:focus-within { border-color: var(--accent-active); box-shadow: 0 0 0 3px rgba(155,126,94,0.1); }
+.search-box svg { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+.search-box input {
+  border: none; outline: none; padding: 10px; font-family: inherit;
+  font-size: 14px; background: transparent; width: 100%; color: var(--text);
+}
+.search-box input::placeholder { color: var(--text-muted); }
+.stats { font-size: 13px; color: var(--text-secondary); }
+.stats strong { color: var(--text); font-weight: 700; }
+
+/* ━━━ Customer List ━━━ */
+.customer-list { display: flex; flex-direction: column; gap: 6px; }
+.customer-row {
+  display: grid; grid-template-columns: 140px 1fr 140px 100px 120px;
+  gap: 16px; align-items: center;
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: var(--radius); padding: 14px 20px;
+  cursor: pointer; transition: var(--transition);
+}
+.customer-row:hover { border-color: var(--accent-active); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.cell { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-name { font-weight: 700; font-size: 15px; }
+.cell-time { color: var(--text-secondary); font-size: 13px; font-variant-numeric: tabular-nums; }
+.cell-phone { color: var(--text-secondary); font-size: 13px; font-variant-numeric: tabular-nums; }
+.cell-tag { font-size: 12px; padding: 3px 10px; border-radius: 20px; text-align: center; font-weight: 500; }
+.tag-first { background: #FEF3E2; color: #B8860B; }
+.tag-regular { background: var(--success-bg); color: var(--success); }
+.tag-default { background: var(--border-light); color: var(--text-secondary); }
+.cell-source { font-size: 13px; color: var(--text-secondary); }
+.list-header {
+  display: grid; grid-template-columns: 140px 1fr 140px 100px 120px;
+  gap: 16px; padding: 8px 20px;
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* ━━━ Detail Modal ━━━ */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(44,40,37,0.4);
+  backdrop-filter: blur(4px); z-index: 200;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 20px; overflow-y: auto; animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.modal-card {
+  background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 720px; animation: slideUp 0.3s ease;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 28px 16px; border-bottom: 1px solid var(--border-light);
+}
+.modal-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; }
+.salon-badge {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 20px; background: var(--border-light);
+  color: var(--accent-active); margin-left: 12px;
+}
+.close-btn {
+  width: 36px; height: 36px; border: none; background: var(--border-light);
+  border-radius: 50%; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; color: var(--text-secondary); transition: var(--transition); flex-shrink: 0;
+}
+.close-btn:hover { background: var(--border); color: var(--text); }
+.modal-body { padding: 20px 28px 28px; }
+
+/* ━━━ Detail Categories ━━━ */
+.detail-category { margin-bottom: 24px; }
+.category-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent-active); margin-bottom: 12px; padding-bottom: 6px;
+  border-bottom: 2px solid var(--border-light);
+}
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.detail-field { padding: 10px 14px; border-radius: 6px; transition: var(--transition); }
+.detail-field:hover { background: var(--bg-hover); }
+.detail-field.alert { background: var(--alert-bg); border-left: 3px solid var(--alert); }
+.detail-field.full-width { grid-column: 1 / -1; }
+.field-label { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-bottom: 2px; letter-spacing: 0.5px; }
+.field-value { font-size: 14px; color: var(--text); word-break: break-all; }
+.field-value.empty { color: var(--text-muted); font-style: italic; }
+
+/* ━━━ Loading / Empty / Pagination ━━━ */
+.loading { display: flex; align-items: center; justify-content: center; padding: 60px; color: var(--text-muted); font-size: 14px; gap: 10px; }
+.spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent-active); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.4; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; }
+.page-btn {
+  padding: 8px 16px; border: 1px solid var(--border); background: var(--bg-card);
+  border-radius: 6px; font-size: 13px; font-family: inherit; cursor: pointer;
+  color: var(--text-secondary); transition: var(--transition);
+}
+.page-btn:hover:not(:disabled) { border-color: var(--accent-active); color: var(--text); }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.page-info { font-size: 13px; color: var(--text-muted); padding: 0 12px; }
+
+/* ━━━ Demo Banner ━━━ */
+.demo-banner {
+  background: #FEF9EF; border: 1px solid #F0DEB4; border-radius: 8px;
+  padding: 12px 20px; margin-bottom: 20px; font-size: 13px; color: #8B7230;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ━━━ Responsive ━━━ */
+@media (max-width: 768px) {
+  .header-inner { flex-direction: column; height: auto; padding: 12px 0; gap: 8px; }
+  .salon-tabs { width: 100%; }
+  .salon-tab { flex: 1; text-align: center; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .search-box { width: 100%; }
+  .list-header { display: none; }
+  .customer-row { grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+  .customer-row .cell-name { grid-column: 1 / -1; }
+  .customer-row .cell-source { grid-column: 1 / -1; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .modal-overlay { padding: 20px 10px; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 設定: GAS WebアプリURLをここに貼る
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const GAS_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
 
-// ━━━ デモデータ（GAS未接続時のフォールバック） ━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// デモデータ（GAS未接続時のフォールバック）
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const DEMO_DATA = {
   lumiss: [
     { _rowIndex: 2, timestamp: "2026/04/01 14:30", name: "タナカ ユイ", phone: "090-1234-5678", birthday: "1995/03/15", how_found: "Instagram", visit_frequency: "月1回" },
@@ -42,9 +252,31 @@ const DEMO_DETAIL = {
     sns_photo_ok: { label: "SNS写真使用", value: "OK" },
     consent: { label: "施術同意", value: "同意する" },
   },
+  ssin: {
+    timestamp: { label: "受付日時", value: "2026/04/02 10:00" },
+    name: { label: "お名前", value: "コバヤシ ハナ" },
+    address: { label: "住所", value: "東京都渋谷区恵比寿1-2-3" },
+    phone: { label: "電話番号", value: "080-1111-2222" },
+    birthday: { label: "生年月日", value: "1997/05/10" },
+    occupation: { label: "職業", value: "会社員" },
+    how_found: { label: "知ったきっかけ", value: "Instagram" },
+    reason_chose: { label: "選んだ理由", value: "デザインが好み" },
+    visit_frequency: { label: "利用頻度", value: "月1回" },
+    treatment_planned: { label: "施術予定", value: "アイブロウスタイリング" },
+    last_brow_care_timing: { label: "最後の眉手入れ", value: "1週間前" },
+    brow_self_care: { label: "眉の自己処理", value: "毛抜き, カミソリ" },
+    allergy_brow: { label: "アレルギー（眉）", value: "なし" },
+    skin_concern_brow: { label: "お肌の気になるところ", value: "特になし" },
+    brow_design_image: { label: "眉デザインイメージ", value: "ナチュラルアーチ" },
+    desired_impression_brow: { label: "見られたい印象", value: "柔らかい印象" },
+    sns_photo_ok_brow: { label: "SNS写真使用", value: "OK" },
+    consent_brow: { label: "施術同意", value: "同意する" },
+  },
 };
 
-// ━━━ カテゴリ分類 ━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// カテゴリ分類（詳細モーダル用）
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const CATEGORIES = {
   lumiss: {
     "基本情報": ["timestamp", "name", "address", "phone", "birthday", "occupation"],
@@ -63,540 +295,17 @@ const CATEGORIES = {
   },
 };
 
-// ━━━ アラートキーワード ━━━
+// ━━━ アラート判定 ━━━
 const ALERT_KEYWORDS = ["あり", "はい", "ある", "妊娠", "授乳", "生理中", "体調不良", "アレルギー"];
+const SAFE_KEYS = ["name", "timestamp", "address", "phone", "birthday", "occupation", "consent", "consent_brow", "consent_lash", "consent_combo"];
+const LONG_KEYS = ["reason_chose", "reason_from_other", "dissatisfaction_reason", "consent", "consent_brow", "consent_lash", "consent_combo", "review_campaign"];
+
+function isAlertValue(key, val) {
+  if (!val || SAFE_KEYS.includes(key)) return false;
+  const s = String(val).toLowerCase();
+  return ALERT_KEYWORDS.some(kw => s.includes(kw));
+}
 
-// ━━━ Styles ━━━
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Cormorant+Garamond:wght@300;400;600&display=swap');
-
-  :root {
-    --bg: #FAF8F5;
-    --bg-card: #FFFFFF;
-    --bg-hover: #F5F0EB;
-    --text: #2C2825;
-    --text-secondary: #8A7E76;
-    --text-muted: #B5ADA5;
-    --accent-lumiss: #9B7E5E;
-    --accent-ssin: #6B7B6E;
-    --accent-active: var(--accent-lumiss);
-    --border: #E8E2DC;
-    --border-light: #F0EBE5;
-    --alert: #C4564A;
-    --alert-bg: #FDF2F1;
-    --success: #5A8A6B;
-    --success-bg: #F0F7F2;
-    --radius: 10px;
-    --shadow-sm: 0 1px 3px rgba(44,40,37,0.06);
-    --shadow-md: 0 4px 16px rgba(44,40,37,0.08);
-    --shadow-lg: 0 8px 32px rgba(44,40,37,0.12);
-    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  
-  body {
-    font-family: 'Zen Kaku Gothic New', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.7;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .app {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ━━━ Header ━━━ */
-  .header {
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(12px);
-    background: rgba(255,255,255,0.92);
-  }
-
-  .header-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-  }
-
-  .logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-weight: 300;
-    letter-spacing: 3px;
-    color: var(--text);
-  }
-
-  .logo span {
-    font-weight: 600;
-    color: var(--accent-active);
-  }
-
-  /* ━━━ Salon Tabs ━━━ */
-  .salon-tabs {
-    display: flex;
-    gap: 2px;
-    background: var(--border-light);
-    border-radius: 8px;
-    padding: 3px;
-  }
-
-  .salon-tab {
-    padding: 8px 20px;
-    border: none;
-    background: transparent;
-    font-family: 'Zen Kaku Gothic New', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    border-radius: 6px;
-    transition: var(--transition);
-    letter-spacing: 1px;
-  }
-
-  .salon-tab:hover {
-    color: var(--text);
-    background: rgba(255,255,255,0.5);
-  }
-
-  .salon-tab.active {
-    background: var(--bg-card);
-    color: var(--text);
-    box-shadow: var(--shadow-sm);
-  }
-
-  /* ━━━ Main ━━━ */
-  .main {
-    flex: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-    padding: 24px;
-  }
-
-  /* ━━━ Toolbar ━━━ */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .search-box {
-    display: flex;
-    align-items: center;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0 14px;
-    width: 320px;
-    transition: var(--transition);
-  }
-
-  .search-box:focus-within {
-    border-color: var(--accent-active);
-    box-shadow: 0 0 0 3px rgba(155,126,94,0.1);
-  }
-
-  .search-box svg {
-    width: 16px;
-    height: 16px;
-    color: var(--text-muted);
-    flex-shrink: 0;
-  }
-
-  .search-box input {
-    border: none;
-    outline: none;
-    padding: 10px 10px;
-    font-family: inherit;
-    font-size: 14px;
-    background: transparent;
-    width: 100%;
-    color: var(--text);
-  }
-
-  .search-box input::placeholder {
-    color: var(--text-muted);
-  }
-
-  .stats {
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-
-  .stats strong {
-    color: var(--text);
-    font-weight: 700;
-  }
-
-  /* ━━━ Customer List ━━━ */
-  .customer-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .customer-row {
-    display: grid;
-    grid-template-columns: 140px 1fr 140px 100px 120px;
-    gap: 16px;
-    align-items: center;
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius);
-    padding: 14px 20px;
-    cursor: pointer;
-    transition: var(--transition);
-  }
-
-  .customer-row:hover {
-    border-color: var(--accent-active);
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-1px);
-  }
-
-  .customer-row .cell {
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .customer-row .cell-name {
-    font-weight: 700;
-    font-size: 15px;
-  }
-
-  .customer-row .cell-time {
-    color: var(--text-secondary);
-    font-size: 13px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .customer-row .cell-phone {
-    color: var(--text-secondary);
-    font-size: 13px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .customer-row .cell-tag {
-    font-size: 12px;
-    padding: 3px 10px;
-    border-radius: 20px;
-    text-align: center;
-    font-weight: 500;
-  }
-
-  .tag-first { background: #FEF3E2; color: #B8860B; }
-  .tag-regular { background: var(--success-bg); color: var(--success); }
-  .tag-default { background: var(--border-light); color: var(--text-secondary); }
-
-  .customer-row .cell-source {
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-
-  .list-header {
-    display: grid;
-    grid-template-columns: 140px 1fr 140px 100px 120px;
-    gap: 16px;
-    padding: 8px 20px;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  /* ━━━ Detail Modal ━━━ */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(44,40,37,0.4);
-    backdrop-filter: blur(4px);
-    z-index: 200;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 40px 20px;
-    overflow-y: auto;
-    animation: fadeIn 0.2s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .modal-card {
-    background: var(--bg-card);
-    border-radius: 16px;
-    box-shadow: var(--shadow-lg);
-    width: 100%;
-    max-width: 720px;
-    animation: slideUp 0.3s ease;
-  }
-
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24px 28px 16px;
-    border-bottom: 1px solid var(--border-light);
-  }
-
-  .modal-header h2 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  .modal-header .salon-badge {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 4px 12px;
-    border-radius: 20px;
-    background: var(--border-light);
-    color: var(--accent-active);
-  }
-
-  .close-btn {
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: var(--border-light);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    transition: var(--transition);
-    flex-shrink: 0;
-  }
-
-  .close-btn:hover {
-    background: var(--border);
-    color: var(--text);
-  }
-
-  .modal-body {
-    padding: 20px 28px 28px;
-  }
-
-  /* ━━━ Detail Categories ━━━ */
-  .detail-category {
-    margin-bottom: 24px;
-  }
-
-  .category-title {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--accent-active);
-    margin-bottom: 12px;
-    padding-bottom: 6px;
-    border-bottom: 2px solid var(--border-light);
-  }
-
-  .detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px;
-  }
-
-  .detail-field {
-    padding: 10px 14px;
-    border-radius: 6px;
-    transition: var(--transition);
-  }
-
-  .detail-field:hover {
-    background: var(--bg-hover);
-  }
-
-  .detail-field.alert {
-    background: var(--alert-bg);
-    border-left: 3px solid var(--alert);
-  }
-
-  .detail-field.full-width {
-    grid-column: 1 / -1;
-  }
-
-  .field-label {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-muted);
-    margin-bottom: 2px;
-    letter-spacing: 0.5px;
-  }
-
-  .field-value {
-    font-size: 14px;
-    color: var(--text);
-    word-break: break-all;
-  }
-
-  .field-value.empty {
-    color: var(--text-muted);
-    font-style: italic;
-  }
-
-  /* ━━━ Loading ━━━ */
-  .loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 60px;
-    color: var(--text-muted);
-    font-size: 14px;
-    gap: 10px;
-  }
-
-  .spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent-active);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* ━━━ Empty State ━━━ */
-  .empty-state {
-    text-align: center;
-    padding: 80px 20px;
-    color: var(--text-muted);
-  }
-
-  .empty-state svg {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 16px;
-    opacity: 0.4;
-  }
-
-  .empty-state p {
-    font-size: 15px;
-  }
-
-  /* ━━━ Pagination ━━━ */
-  .pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 24px;
-  }
-
-  .page-btn {
-    padding: 8px 16px;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: inherit;
-    cursor: pointer;
-    color: var(--text-secondary);
-    transition: var(--transition);
-  }
-
-  .page-btn:hover:not(:disabled) {
-    border-color: var(--accent-active);
-    color: var(--text);
-  }
-
-  .page-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .page-info {
-    font-size: 13px;
-    color: var(--text-muted);
-    padding: 0 12px;
-  }
-
-  /* ━━━ Demo Banner ━━━ */
-  .demo-banner {
-    background: #FEF9EF;
-    border: 1px solid #F0DEB4;
-    border-radius: 8px;
-    padding: 12px 20px;
-    margin-bottom: 20px;
-    font-size: 13px;
-    color: #8B7230;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* ━━━ Responsive ━━━ */
-  @media (max-width: 768px) {
-    .header-inner { flex-direction: column; height: auto; padding: 12px 0; gap: 8px; }
-    .salon-tabs { width: 100%; }
-    .salon-tab { flex: 1; text-align: center; }
-    .toolbar { flex-direction: column; align-items: stretch; }
-    .search-box { width: 100%; }
-    .list-header { display: none; }
-    .customer-row {
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto;
-      gap: 4px 12px;
-    }
-    .customer-row .cell-time { order: 1; }
-    .customer-row .cell-name { order: 0; grid-column: 1 / -1; }
-    .customer-row .cell-phone { order: 2; }
-    .customer-row .cell-tag { order: 3; justify-self: start; }
-    .customer-row .cell-source { order: 4; grid-column: 1 / -1; }
-    .detail-grid { grid-template-columns: 1fr; }
-    .modal-overlay { padding: 20px 10px; }
-  }
-`;
-
-// ━━━ Icons ━━━
-const SearchIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-  </svg>
-);
-
-const CloseIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="18" height="18">
-    <path d="M18 6 6 18M6 6l12 12" />
-  </svg>
-);
-
-// ━━━ Helper ━━━
 function getFrequencyTag(freq) {
   if (!freq) return { label: "—", cls: "tag-default" };
   const s = String(freq);
@@ -605,15 +314,18 @@ function getFrequencyTag(freq) {
   return { label: s.length > 8 ? s.slice(0, 8) + "…" : s, cls: "tag-default" };
 }
 
-function isAlertValue(val) {
-  if (!val) return false;
-  const s = String(val).toLowerCase();
-  return ALERT_KEYWORDS.some(kw => s.includes(kw));
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Components
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+    </svg>
+  );
 }
 
-const LONG_VALUE_KEYS = ["reason_chose", "reason_from_other", "dissatisfaction_reason", "consent", "consent_brow", "consent_lash", "consent_combo", "review_campaign"];
-
-// ━━━ Components ━━━
 function CustomerRow({ customer, salon, onClick }) {
   const tag = getFrequencyTag(customer.visit_frequency);
   return (
@@ -628,7 +340,7 @@ function CustomerRow({ customer, salon, onClick }) {
         )}
       </div>
       <div className="cell cell-phone">{customer.phone}</div>
-      <div className={`cell cell-tag ${tag.cls}`}>{tag.label}</div>
+      <div className={"cell cell-tag " + tag.cls}>{tag.label}</div>
       <div className="cell cell-source">{customer.how_found}</div>
     </div>
   );
@@ -637,18 +349,21 @@ function CustomerRow({ customer, salon, onClick }) {
 function DetailModal({ detail, salon, onClose }) {
   const categories = CATEGORIES[salon] || {};
   const salonLabel = salon === "lumiss" ? "LUMISS" : "SSIN STUDIO";
-
   if (!detail) return null;
 
   return (
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-card">
         <div className="modal-header">
-          <div>
+          <div style={{ display: "flex", alignItems: "center" }}>
             <h2>{detail.name?.value || "顧客詳細"}</h2>
             <span className="salon-badge">{salonLabel}</span>
           </div>
-          <button className="close-btn" onClick={onClose}><CloseIcon /></button>
+          <button className="close-btn" onClick={onClose}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="18" height="18">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
         </div>
         <div className="modal-body">
           {Object.entries(categories).map(([catName, keys]) => {
@@ -661,17 +376,12 @@ function DetailModal({ detail, salon, onClose }) {
                   {fields.map(key => {
                     const f = detail[key];
                     const val = String(f.value || "");
-                    const isAlert = isAlertValue(val) && !["name", "timestamp", "address", "phone", "birthday", "occupation", "consent", "consent_brow", "consent_lash", "consent_combo"].includes(key);
-                    const isLong = LONG_VALUE_KEYS.includes(key) || val.length > 60;
+                    const alert = isAlertValue(key, val);
+                    const isLong = LONG_KEYS.includes(key) || val.length > 60;
                     return (
-                      <div
-                        key={key}
-                        className={`detail-field ${isAlert ? "alert" : ""} ${isLong ? "full-width" : ""}`}
-                      >
+                      <div key={key} className={"detail-field" + (alert ? " alert" : "") + (isLong ? " full-width" : "")}>
                         <div className="field-label">{f.label}</div>
-                        <div className={`field-value ${!val ? "empty" : ""}`}>
-                          {val || "未入力"}
-                        </div>
+                        <div className={"field-value" + (!val ? " empty" : "")}>{val || "未入力"}</div>
                       </div>
                     );
                   })}
@@ -685,8 +395,10 @@ function DetailModal({ detail, salon, onClose }) {
   );
 }
 
-// ━━━ Main App ━━━
-export default function App() {
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Main App
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function App() {
   const [salon, setSalon] = useState("lumiss");
   const [customers, setCustomers] = useState([]);
   const [total, setTotal] = useState(0);
@@ -699,7 +411,7 @@ export default function App() {
   const limit = 20;
   const searchTimer = useRef(null);
 
-  // Accent color swap
+  // アクセントカラー切替
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--accent-active",
@@ -707,43 +419,46 @@ export default function App() {
     );
   }, [salon]);
 
-  // Fetch list
-  const fetchList = useCallback(async (s, q, o) => {
+  // 一覧取得
+  const fetchList = useCallback((s, q, o) => {
     setLoading(true);
-    try {
-      const url = `${GAS_URL}?salon=${s}&action=list&limit=${limit}&offset=${o}&search=${encodeURIComponent(q)}`;
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.success) {
-        setCustomers(json.data);
-        setTotal(json.total);
-        setIsDemo(false);
-      } else {
-        throw new Error(json.error);
-      }
-    } catch (err) {
-      console.warn("GAS未接続 → デモデータ表示:", err.message);
-      const demoList = DEMO_DATA[s] || [];
-      const filtered = q
-        ? demoList.filter(r => Object.values(r).join(" ").toLowerCase().includes(q.toLowerCase()))
-        : demoList;
-      setCustomers(filtered);
-      setTotal(filtered.length);
-      setIsDemo(true);
-    }
-    setLoading(false);
+    fetch(GAS_URL + "?salon=" + s + "&action=list&limit=" + limit + "&offset=" + o + "&search=" + encodeURIComponent(q))
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          setCustomers(json.data);
+          setTotal(json.total);
+          setIsDemo(false);
+        } else {
+          throw new Error(json.error);
+        }
+      })
+      .catch(err => {
+        console.warn("GAS未接続 → デモデータ:", err.message);
+        const list = DEMO_DATA[s] || [];
+        const filtered = q
+          ? list.filter(r => Object.values(r).join(" ").toLowerCase().includes(q.toLowerCase()))
+          : list;
+        setCustomers(filtered);
+        setTotal(filtered.length);
+        setIsDemo(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
+  // サロン切替
   useEffect(() => {
     setOffset(0);
-    fetchList(salon, search, 0);
+    setSearch("");
+    fetchList(salon, "", 0);
   }, [salon]);
 
+  // ページ切替
   useEffect(() => {
     fetchList(salon, search, offset);
   }, [offset]);
 
-  // Debounced search
+  // 検索（デバウンス）
   const handleSearch = (val) => {
     setSearch(val);
     clearTimeout(searchTimer.current);
@@ -753,157 +468,113 @@ export default function App() {
     }, 400);
   };
 
-  // Fetch detail
-  const openDetail = async (rowIndex) => {
+  // 詳細取得
+  const openDetail = (rowIndex) => {
     setDetailLoading(true);
-    try {
-      const url = `${GAS_URL}?salon=${salon}&action=detail&row=${rowIndex}`;
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.success) {
-        setSelectedDetail(json.data);
-        setIsDemo(false);
-      } else {
-        throw new Error(json.error);
-      }
-    } catch {
-      setSelectedDetail(DEMO_DETAIL.lumiss);
-      setIsDemo(true);
-    }
-    setDetailLoading(false);
+    fetch(GAS_URL + "?salon=" + salon + "&action=detail&row=" + rowIndex)
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          setSelectedDetail(json.data);
+          setIsDemo(false);
+        } else {
+          throw new Error(json.error);
+        }
+      })
+      .catch(() => {
+        setSelectedDetail(DEMO_DETAIL[salon] || DEMO_DETAIL.lumiss);
+        setIsDemo(true);
+      })
+      .finally(() => setDetailLoading(false));
   };
 
   const salonLabel = salon === "lumiss" ? "LUMISS" : "SSIN STUDIO";
 
   return (
-    <>
-      <style>{css}</style>
-      <div className="app">
-        {/* Header */}
-        <header className="header">
-          <div className="header-inner">
-            <div className="logo">
-              COUNSELING <span>VIEWER</span>
-            </div>
-            <div className="salon-tabs">
-              <button
-                className={`salon-tab ${salon === "lumiss" ? "active" : ""}`}
-                onClick={() => { setSalon("lumiss"); setSearch(""); }}
-              >
-                LUMISS
-              </button>
-              <button
-                className={`salon-tab ${salon === "ssin" ? "active" : ""}`}
-                onClick={() => { setSalon("ssin"); setSearch(""); }}
-              >
-                SSIN STUDIO
-              </button>
-            </div>
+    <div className="app">
+      {/* ━━━ Header ━━━ */}
+      <header className="header">
+        <div className="header-inner">
+          <div className="logo">COUNSELING <span>VIEWER</span></div>
+          <div className="salon-tabs">
+            <button className={"salon-tab" + (salon === "lumiss" ? " active" : "")}
+              onClick={() => setSalon("lumiss")}>LUMISS</button>
+            <button className={"salon-tab" + (salon === "ssin" ? " active" : "")}
+              onClick={() => setSalon("ssin")}>SSIN STUDIO</button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Main */}
-        <main className="main">
-          {isDemo && (
-            <div className="demo-banner">
-              ⚡ デモモード — GAS WebアプリURLを設定すると実データが表示されます
-            </div>
-          )}
-
-          {/* Toolbar */}
-          <div className="toolbar">
-            <div className="search-box">
-              <SearchIcon />
-              <input
-                type="text"
-                placeholder={`${salonLabel} のお客様を検索...`}
-                value={search}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-            </div>
-            <div className="stats">
-              全 <strong>{total}</strong> 件
-              {offset > 0 && ` (${offset + 1}〜${Math.min(offset + limit, total)}件表示)`}
-            </div>
-          </div>
-
-          {/* List Header */}
-          <div className="list-header">
-            <div>受付日時</div>
-            <div>お名前</div>
-            <div>電話番号</div>
-            <div>頻度</div>
-            <div>きっかけ</div>
-          </div>
-
-          {/* Customer List */}
-          {loading ? (
-            <div className="loading">
-              <div className="spinner" />
-              読み込み中...
-            </div>
-          ) : customers.length === 0 ? (
-            <div className="empty-state">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M9 12h6M12 9v6M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-              <p>データがありません</p>
-            </div>
-          ) : (
-            <div className="customer-list">
-              {customers.map((c, i) => (
-                <CustomerRow
-                  key={c._rowIndex || i}
-                  customer={c}
-                  salon={salon}
-                  onClick={openDetail}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {total > limit && (
-            <div className="pagination">
-              <button
-                className="page-btn"
-                disabled={offset === 0}
-                onClick={() => setOffset(Math.max(0, offset - limit))}
-              >
-                ← 前へ
-              </button>
-              <span className="page-info">
-                {Math.floor(offset / limit) + 1} / {Math.ceil(total / limit)}
-              </span>
-              <button
-                className="page-btn"
-                disabled={offset + limit >= total}
-                onClick={() => setOffset(offset + limit)}
-              >
-                次へ →
-              </button>
-            </div>
-          )}
-        </main>
-
-        {/* Detail Modal */}
-        {selectedDetail && (
-          <DetailModal
-            detail={selectedDetail}
-            salon={salon}
-            onClose={() => setSelectedDetail(null)}
-          />
-        )}
-
-        {detailLoading && (
-          <div className="modal-overlay">
-            <div className="loading" style={{ color: "#fff" }}>
-              <div className="spinner" style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "#fff" }} />
-              詳細を読み込み中...
-            </div>
+      {/* ━━━ Main ━━━ */}
+      <main className="main">
+        {isDemo && (
+          <div className="demo-banner">
+            ⚡ デモモード — GAS WebアプリURLを設定すると実データが表示されます
           </div>
         )}
-      </div>
-    </>
+
+        <div className="toolbar">
+          <div className="search-box">
+            <SearchIcon />
+            <input type="text" placeholder={salonLabel + " のお客様を検索..."} value={search}
+              onChange={(e) => handleSearch(e.target.value)} />
+          </div>
+          <div className="stats">
+            全 <strong>{total}</strong> 件
+            {offset > 0 && " (" + (offset + 1) + "〜" + Math.min(offset + limit, total) + "件表示)"}
+          </div>
+        </div>
+
+        <div className="list-header">
+          <div>受付日時</div><div>お名前</div><div>電話番号</div><div>頻度</div><div>きっかけ</div>
+        </div>
+
+        {loading ? (
+          <div className="loading"><div className="spinner" />読み込み中...</div>
+        ) : customers.length === 0 ? (
+          <div className="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M9 12h6M12 9v6M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <p>データがありません</p>
+          </div>
+        ) : (
+          <div className="customer-list">
+            {customers.map((c, i) => (
+              <CustomerRow key={c._rowIndex || i} customer={c} salon={salon} onClick={openDetail} />
+            ))}
+          </div>
+        )}
+
+        {total > limit && (
+          <div className="pagination">
+            <button className="page-btn" disabled={offset === 0}
+              onClick={() => setOffset(Math.max(0, offset - limit))}>← 前へ</button>
+            <span className="page-info">{Math.floor(offset / limit) + 1} / {Math.ceil(total / limit)}</span>
+            <button className="page-btn" disabled={offset + limit >= total}
+              onClick={() => setOffset(offset + limit)}>次へ →</button>
+          </div>
+        )}
+      </main>
+
+      {/* ━━━ Detail Modal ━━━ */}
+      {selectedDetail && (
+        <DetailModal detail={selectedDetail} salon={salon} onClose={() => setSelectedDetail(null)} />
+      )}
+      {detailLoading && (
+        <div className="modal-overlay">
+          <div className="loading" style={{ color: "#fff" }}>
+            <div className="spinner" style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "#fff" }} />
+            詳細を読み込み中...
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
+
+// ━━━ Mount ━━━
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
