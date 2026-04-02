@@ -218,10 +218,10 @@ const GAS_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const DEMO_DATA = {
   lumiss: [
-    { _rowIndex: 2, timestamp: "2026/04/01 14:30", name: "タナカ ユイ", phone: "090-1234-5678", birthday: "1995/03/15", how_found: "Instagram", visit_frequency: "月1回" },
-    { _rowIndex: 3, timestamp: "2026/04/01 11:00", name: "サトウ アヤ", phone: "080-9876-5432", birthday: "1998/07/22", how_found: "友人の紹介", visit_frequency: "初めて" },
-    { _rowIndex: 4, timestamp: "2026/03/31 16:45", name: "スズキ マイ", phone: "070-5555-1234", birthday: "1992/11/08", how_found: "Hot Pepper Beauty", visit_frequency: "2ヶ月に1回" },
-    { _rowIndex: 5, timestamp: "2026/03/30 10:15", name: "ヤマモト リナ", phone: "090-3333-7890", birthday: "2000/01/30", how_found: "Google検索", visit_frequency: "月1回" },
+    { _rowIndex: 2, timestamp: "2026/04/01 14:30", name: "タナカ ユイ", phone: "090-1234-5678", birthday: "1995/03/15", how_found: "Instagram", visit_frequency: "月1回", treatment_planned: "ラッシュリフト" },
+    { _rowIndex: 3, timestamp: "2026/04/01 11:00", name: "サトウ アヤ", phone: "080-9876-5432", birthday: "1998/07/22", how_found: "友人の紹介", visit_frequency: "初めて", treatment_planned: "アイブロウスタイリング" },
+    { _rowIndex: 4, timestamp: "2026/03/31 16:45", name: "スズキ マイ", phone: "070-5555-1234", birthday: "1992/11/08", how_found: "Hot Pepper Beauty", visit_frequency: "2ヶ月に1回", treatment_planned: "アイブロウ＋ラッシュリフト" },
+    { _rowIndex: 5, timestamp: "2026/03/30 10:15", name: "ヤマモト リナ", phone: "090-3333-7890", birthday: "2000/01/30", how_found: "Google検索", visit_frequency: "月1回", treatment_planned: "ラッシュリフト" },
   ],
   ssin: [
     { _rowIndex: 2, timestamp: "2026/04/02 10:00", name: "コバヤシ ハナ", phone: "080-1111-2222", birthday: "1997/05/10", how_found: "Instagram", visit_frequency: "月1回", treatment_planned: "アイブロウスタイリング" },
@@ -242,15 +242,16 @@ const DEMO_DETAIL = {
     reason_chose: { label: "選んだ理由", value: "口コミが良かった, デザインが豊富" },
     visit_frequency: { label: "利用頻度", value: "月1回" },
     interested_menu: { label: "興味のあるメニュー", value: "まつげパーマ" },
+    treatment_planned: { label: "施術予定", value: "ラッシュリフト" },
     glue_allergy_history: { label: "グルーかぶれ経験", value: "なし" },
-    eye_trouble_current: { label: "目元トラブル（現在）", value: "なし" },
-    health_condition: { label: "体調", value: "良好" },
-    allergy: { label: "アレルギー", value: "なし" },
+    eye_surgery_history: { label: "目元整形/レーシック", value: "なし" },
+    allergy_lash: { label: "アレルギー（ラッシュ）", value: "なし" },
+    skin_concern_lash: { label: "お肌の気になるところ（ラッシュ）", value: "特になし" },
     eye_appearance_pref: { label: "目の見え方の希望", value: "ナチュラル" },
-    design_pref: { label: "デザイン希望", value: "キュート" },
-    homecare_product: { label: "ホームケア商品", value: "マジョリカマジョルカ" },
-    sns_photo_ok: { label: "SNS写真使用", value: "OK" },
-    consent: { label: "施術同意", value: "同意する" },
+    lash_design_image: { label: "ラッシュデザインイメージ", value: "キュート" },
+    homecare_product_lash: { label: "ホームケア商品（ラッシュ）", value: "マジョリカマジョルカ" },
+    sns_photo_ok_lash: { label: "SNS写真使用（ラッシュ）", value: "OK" },
+    consent_lash: { label: "施術同意（ラッシュ）", value: "同意する" },
   },
   ssin: {
     timestamp: { label: "受付日時", value: "2026/04/02 10:00" },
@@ -277,22 +278,18 @@ const DEMO_DETAIL = {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // カテゴリ分類（詳細モーダル用）
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LUMISS・SSIN共通のカテゴリ構造（スプレッドシートが同一列構成のため）
+const SHARED_CATEGORIES = {
+  "基本情報": ["timestamp", "name", "address", "phone", "birthday", "occupation"],
+  "来店経緯": ["how_found", "reason_chose", "reason_from_other", "dissatisfaction_reason", "visit_frequency", "interested_menu", "column_51", "treatment_planned"],
+  "アイブロウ": ["last_brow_care_timing", "brow_self_care", "facial_cosmetic_surgery", "allergy_brow", "skin_concern_brow", "brow_color_bleach", "brow_design_image", "desired_impression_brow", "brow_makeup_items", "sns_photo_ok_brow", "consent_brow"],
+  "ラッシュリフト": ["glue_allergy_history", "eye_surgery_history", "allergy_lash", "skin_concern_lash", "eye_appearance_pref", "lash_design_image", "homecare_product_lash", "sns_photo_ok_lash", "consent_lash"],
+  "併用メニュー": ["eye_surgery_history_combo", "allergy_combo", "skin_concern_combo", "brow_self_care_combo", "last_brow_care_timing_combo", "brow_color_bleach_combo", "brow_design_image_combo", "desired_impression_combo", "brow_makeup_items_combo", "glue_allergy_history_combo", "contact_lens", "eye_appearance_pref_combo", "lash_design_image_combo", "homecare_product_combo", "sns_photo_ok_combo", "consent_combo"],
+  "その他": ["first_visit_homecare"],
+};
 const CATEGORIES = {
-  lumiss: {
-    "基本情報": ["timestamp", "name", "address", "phone", "birthday", "occupation"],
-    "来店経緯": ["how_found", "reason_chose", "reason_from_other", "dissatisfaction_reason", "visit_frequency", "interested_menu"],
-    "健康状態": ["glue_allergy_history", "eye_trouble_current", "health_condition", "recent_procedures_3m", "allergy", "past_inflammation"],
-    "施術希望": ["eye_appearance_pref", "design_pref", "design_image_pref", "homecare_product"],
-    "同意・その他": ["sns_photo_ok", "consent", "review_campaign", "first_visit_homecare"],
-  },
-  ssin: {
-    "基本情報": ["timestamp", "name", "address", "phone", "birthday", "occupation"],
-    "来店経緯": ["how_found", "reason_chose", "reason_from_other", "dissatisfaction_reason", "visit_frequency", "interested_menu", "column_51", "treatment_planned"],
-    "アイブロウ": ["last_brow_care_timing", "brow_self_care", "facial_cosmetic_surgery", "allergy_brow", "skin_concern_brow", "brow_color_bleach", "brow_design_image", "desired_impression_brow", "brow_makeup_items", "sns_photo_ok_brow", "consent_brow"],
-    "ラッシュリフト": ["glue_allergy_history", "eye_surgery_history", "allergy_lash", "skin_concern_lash", "eye_appearance_pref", "lash_design_image", "homecare_product_lash", "sns_photo_ok_lash", "consent_lash"],
-    "併用メニュー": ["eye_surgery_history_combo", "allergy_combo", "skin_concern_combo", "brow_self_care_combo", "last_brow_care_timing_combo", "brow_color_bleach_combo", "brow_design_image_combo", "desired_impression_combo", "brow_makeup_items_combo", "glue_allergy_history_combo", "contact_lens", "eye_appearance_pref_combo", "lash_design_image_combo", "homecare_product_combo", "sns_photo_ok_combo", "consent_combo"],
-    "その他": ["first_visit_homecare", "age", "age_group"],
-  },
+  lumiss: SHARED_CATEGORIES,
+  ssin: SHARED_CATEGORIES,
 };
 
 // ━━━ アラート判定 ━━━
@@ -333,7 +330,7 @@ function CustomerRow({ customer, salon, onClick }) {
       <div className="cell cell-time">{customer.timestamp}</div>
       <div className="cell cell-name">
         {customer.name}
-        {salon === "ssin" && customer.treatment_planned && (
+        {customer.treatment_planned && (
           <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 400, marginLeft: 8 }}>
             {customer.treatment_planned}
           </span>
