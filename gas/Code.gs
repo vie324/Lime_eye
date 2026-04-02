@@ -217,10 +217,10 @@ function getList(salon, limit, offset, search) {
     }
 
     const record = { _rowIndex: i };
-    record.timestamp = formatDate(row[0]);       // A
+    record.timestamp = formatDateTime(row[0]);    // A
     record.name = row[1] || '';                   // B
     record.phone = row[3] || '';                  // D
-    record.birthday = row[4] || '';               // E
+    record.birthday = formatDateOnly(row[4]);     // E
     record.how_found = row[6] || '';              // G
     record.visit_frequency = row[10] || '';       // K
     record.treatment_planned = row[13] || '';     // N
@@ -262,7 +262,8 @@ function getDetail(salon, rowIndex) {
   columns.forEach((key, idx) => {
     if (idx < row.length) {
       let val = row[idx];
-      if (key === 'timestamp') val = formatDate(val);
+      if (key === 'timestamp') val = formatDateTime(val);
+      if (key === 'birthday') val = formatDateOnly(val);
       record[key] = { value: val || '', label: labels[key] || key };
     }
   });
@@ -271,12 +272,26 @@ function getDetail(salon, rowIndex) {
 }
 
 // ━━━ ユーティリティ ━━━
-function formatDate(val) {
+function formatDateTime(val) {
   if (!val) return '';
-  if (val instanceof Date) {
-    return Utilities.formatDate(val, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  try {
+    const d = (val instanceof Date) ? val : new Date(val);
+    if (isNaN(d.getTime())) return String(val);
+    return Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  } catch (e) {
+    return String(val);
   }
-  return String(val);
+}
+
+function formatDateOnly(val) {
+  if (!val) return '';
+  try {
+    const d = (val instanceof Date) ? val : new Date(val);
+    if (isNaN(d.getTime())) return String(val);
+    return Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy/MM/dd');
+  } catch (e) {
+    return String(val);
+  }
 }
 
 // ━━━ CORS対応（必要に応じて） ━━━
